@@ -84,6 +84,8 @@ spec:
         - name: privacy-policy
           configMap:
             name: "privacy-policy"
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: fence
         GEN3_FENCE-CANARY_IMAGE|-GEN3_FENCE_IMAGE-|

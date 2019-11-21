@@ -78,6 +78,8 @@ spec:
         - name: projects
           configMap:
             name: "projects"
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: arborist
         GEN3_ARBORIST_IMAGE

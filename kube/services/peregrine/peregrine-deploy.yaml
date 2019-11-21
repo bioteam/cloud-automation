@@ -57,6 +57,8 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+      imagePullSecrets:
+      - name: regcred
       containers:
         - name: peregrine
           GEN3_PEREGRINE_IMAGE

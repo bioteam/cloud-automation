@@ -49,6 +49,8 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE

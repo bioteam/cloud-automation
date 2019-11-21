@@ -56,6 +56,8 @@ spec:
       # sheepdog transactions take forever -
       # try to let the complete before termination
       terminationGracePeriodSeconds: 50
+      imagePullSecrets:
+      - name: regcred
       containers:
         - name: sheepdog
           GEN3_SHEEPDOG_IMAGE
