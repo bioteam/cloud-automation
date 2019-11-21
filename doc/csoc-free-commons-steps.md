@@ -61,7 +61,7 @@ export GEN3_NOPROXY='no'
 
 3. Install dependencies; you must run this part as a sudo access user.
 ```bash 
-bash cloud-automation/gen3/bin/kube-setup-workvm.sh
+sudo -E bash cloud-automation/gen3/bin/kube-setup-workvm.sh
 ```
 
 4. kube-setup-workvm.sh adds a few required configurations to the user's local bashrc file. To be able to use them, we may want to source it, otherwise we'll have to logout and in again.
