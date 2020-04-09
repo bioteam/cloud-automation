@@ -3,6 +3,8 @@
 172.16.191.254
 192.170.230.164
 accounts.google.com
+achecker.ca
+ctds-planx.atlassian.net
 api-bionimbus-pdc.opensciencedatacloud.org
 api.immport.org
 api.login.yahoo.com
@@ -39,6 +41,7 @@ dl.google.com
 dmas.berkeley.edu
 docker-auth.elastic.co
 docker.elastic.co
+downloads.chef.io
 download.java.net
 download.oracle.com
 dream.annailabs.com
@@ -51,8 +54,8 @@ ftp.sanger.ac.uk
 ftp.usf.edu
 ftp.ussg.iu.edu
 gcr.io
+gen3.org
 gist.githubusercontent.com
-git.bionimbus.org
 git.io
 go.googlesource.com
 golang.org
@@ -66,7 +69,6 @@ k8s.gcr.io
 keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
-login.bionimbus.org
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
@@ -98,6 +100,7 @@ neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
 orcid.org
+packages.chef.io
 pgp.mit.edu
 ppa.launchpad.net
 pubmirrors.dal.corespace.com
@@ -121,11 +124,12 @@ sa-update.secnap.net
 sa-update.space-pro.be
 security.debian.org
 services.mathworks.com
-source.bionimbus.org
 streaming.stat.iastate.edu
+www.dph.illinois.gov
 www.google.com
 www.mathworks.com
 www.oracle.com
 www.rabbitmq.com
 www.uniprot.org
+vpodc.org
 yahoo.com
