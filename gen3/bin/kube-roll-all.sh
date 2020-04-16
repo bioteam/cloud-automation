@@ -107,7 +107,7 @@ else
 fi
 
 if g3k_manifest_lookup .versions.guppy 2> /dev/null; then
-  gen3 kube-setup-guppy
+  gen3 kube-setup-guppy || true
 else
   gen3_log_info "not deploying guppy - no manifest entry for .versions.guppy"
 fi
