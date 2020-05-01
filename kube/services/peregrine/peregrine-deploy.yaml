@@ -138,8 +138,8 @@ spec:
               cpu: 1
               memory: 1024Mi
             limits:
-              cpu: 2
-              memory: 2048Mi
+              cpu: 4
+              memory: 4096Mi
           livenessProbe:
             httpGet:
               path: /_status?timeout=20
