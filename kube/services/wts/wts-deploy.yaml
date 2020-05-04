@@ -55,6 +55,8 @@ spec:
           value: "/var/www/wts/appcreds.json"
         - name: AUTH_PLUGINS
           value: k8s
+        - name: CURL_CA_BUNDLE
+          value: ""
         volumeMounts:
         - name: "wts-secret"
           readOnly: true
