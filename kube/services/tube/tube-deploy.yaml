@@ -85,7 +85,7 @@ spec:
           resources:
             limits:
               cpu: 1
-              memory: 12Gi
+              memory: 6Gi
           command: ["/bin/bash" ]
           args:
             - "-c"
