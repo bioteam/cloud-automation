@@ -25,10 +25,6 @@ spec:
         userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
-      hostAliases:
-      - ip: "10.221.200.25"
-        hostnames:
-        - "gdh.web.bms.com"
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
