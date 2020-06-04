@@ -124,7 +124,7 @@ variable "rds_instance_skip_final_snapshot" {
 variable "rds_instance_storage_encrypted" {
   description = "Specifies whether the DB instance is encrypted"
 #  type        = "bool"
-  default     = false
+  default     = true
 }
 
 variable "rds_instance_vpc_security_group_ids" {

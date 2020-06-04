@@ -157,6 +157,8 @@ resource "aws_kms_key" "kube_key" {
   description                 = "encryption/decryption key for kubernete"
   enable_key_rotation         = true
 
+  key_id = "25e4f5b4-835e-4695-b05d-19da0db45dc7" # JEJ: BMS-Standard-Key, PROD
+
   tags {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"

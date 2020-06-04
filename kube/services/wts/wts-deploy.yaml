@@ -49,6 +49,8 @@ spec:
         ports:
         - containerPort: 80
         env:
+        - name: CURL_CA_BUNDLE
+          value: "" 
         - name: POSTGRES_CREDS_FILE
           value: "/var/www/wts/dbcreds.json"
         - name: SECRET_CONFIG
