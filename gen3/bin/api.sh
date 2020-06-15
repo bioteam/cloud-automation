@@ -178,7 +178,7 @@ gen3_new_project() {
   "releasable": true
 }
 EOM
-  gen3_curl_json "/api/v0/submission/$progName" "$userName" "$jsonFile"
+  gen3_curl_json "api/v0/submission/$progName" "$userName" "$jsonFile"
   result=$?
   rm $jsonFile
   return $result
@@ -213,7 +213,7 @@ gen3_new_program() {
   "dbgap_accession_number": "$progName"
 }
 EOM
-  gen3_curl_json "/api/v0/submission/" "$userName" "$jsonFile"
+  gen3_curl_json "api/v0/submission/" "$userName" "$jsonFile"
   result=$?
   rm $jsonFile
   return $result
@@ -224,12 +224,20 @@ gen3_indexd_post_folder_help() {
   cat - <<EOM
   gen3 indexd-post-folder [folder]:
       Post the .json files under the given folder to indexd
-      in the current environment: $DEST_DOMAIN
+      in the current environment
       Note - currently only works with new records - does not
          attempt to update existing records.
 EOM
   return 0
 }
+
+#
+# Shortcut for querying manifest-global .data.hostname
+#
+gen3_api_hostname() {
+  (g3kubectl get configmap manifest-global -o json || echo "ERROR - breaking pipeline") | jq  -e -r '.data.hostname'
+}
+
 
 gen3_indexd_post_folder() {
   local DEST_DOMAIN
@@ -250,7 +258,7 @@ gen3_indexd_post_folder() {
     return 1
   fi
 
-  DEST_DOMAIN=$(g3kubectl get configmap global -o json | jq -r '.data.hostname')
+  DEST_DOMAIN="$(gen3_api_hostname)"
   INDEXD_USER=gdcapi
   # grab the gdcapi indexd password from sheepdog creds
   INDEXD_SECRET="$(g3kubectl get secret sheepdog-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r '.indexd_password')"
@@ -320,6 +328,73 @@ gen3_indexd_download_all() {
 }
 
 
+gen3_sower_template() {
+  local name="$1"
+  
+  case "$name" in
+    "pfb")
+      cat - <<EOM
+{
+  "action": "export",
+  "input": {
+    "filter": {
+      "AND": []
+    }
+  }
+}
+EOM
+      ;;
+    *)
+      gen3_log_err "unknown template name: $name"
+      return 1
+      ;;
+  esac
+}
+
+gen3_sower_run() {  
+  local commandFile="$1"
+  local apiKey="$2"
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "use: gen3_sower_run commandFile apiKey|username"
+    return 1
+  fi
+  shift
+  shift
+  if [[ ! -f "$commandFile" ]] || ! jq -e -r . < "$commandFile" 1>&2; then
+    gen3_log_err "sower command file does not exist or is not valid json: $commandFile"
+    return 1
+  fi
+
+  local response
+  if ! response="$(gen3 api curl "job/dispatch" "$apiKey" "$commandFile")"; then
+    gen3_log_err "failed to submit sower command - $response"
+    return 1
+  fi
+  gen3_log_info "got response: $response"
+  local uid
+  if ! uid="$(jq -e -r .uid <<< "$response")"; then
+    gen3_log_err "failed to retrieve uid from response: $response"
+    return 1
+  fi
+  local count=0
+  local status=""
+  while [[ "$count" -lt 100 ]]; do
+      gen3_log_info "waiting for job with uid: $uid"
+      sleep 10
+      if ! response="$(gen3 api curl "job/status?UID=$uid" "$apiKey")"; then
+        gen3_log_warn "failed status query - got response: $response"
+      else
+        gen3_log_info "got response: $response"
+      fi
+      status="$(jq -r .status <<< "$response")"
+      gen3_log_info "got status: $status"
+      if [[ "$status" != "Running" ]]; then count=100; fi
+      count=$((count + 1))
+  done
+  gen3_log_info "fetching output for $uid"
+  gen3 api curl "job/output?UID=$uid" "$apiKey"
+}
+
 #---------- main
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -336,11 +411,20 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "access-token")
       gen3_access_token "$@"
       ;;
+    "hostname")
+      gen3_api_hostname "$@"
+      ;;
     "new-program")
       gen3_new_program "$@"
       ;;
     "new-project")
       gen3_new_project "$@"
+      ;;
+    "sower-run")
+      gen3_sower_run "$@"
+      ;;
+    "sower-template")
+      gen3_sower_template "$@"
       ;;
     "curl")
       gen3_curl_json "$@"

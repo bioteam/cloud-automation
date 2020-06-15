@@ -114,6 +114,10 @@ EOF
 ##
 function create_role(){
   local role_name="${vpc_name}-${SERVICE_ACCOUNT_NAME}-role"
+  if [[ ${#role_name} -gt 63 ]]; then
+    role_name=$(echo "$role_name" | head -c63)
+    gen3_log_warning "Role name has been truncated, due to amazon role name 64 character limit. New role name is $role_name"
+  fi
   local assume_role_policy_path="$(create_assume_role_policy)"
 
   gen3_log_info "Entering create_role"
@@ -449,7 +453,7 @@ function HELP(){
   echo "        -p policy      --policy policy      --policy=policy      Policy you wish to add, delete. I can be either a file"
   echo "                                                                 a policy name, or ARN. To delete policies on a role, you"
   echo "                                                                 must not use a file, only name"
-  echo "If you are updating aservice account role you must also provide the action to take:"
+  echo "If you are updating a service account role you must also provide the action to take:"
   echo "        -a action      --action action      --action=action      a for adding and d for deleting"
   echo
   echo "If the service account is inteded for a different namespace than the default: "
