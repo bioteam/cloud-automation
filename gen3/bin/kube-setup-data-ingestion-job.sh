@@ -12,13 +12,7 @@ gen3 kube-setup-secrets
 mkdir -p "$(gen3_secrets_folder)/g3auto/data-ingestion-job"
 credsFile="$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_ingestion_job_config.json"
 
-refresh_secret() {
-  g3kubectl delete secret data-ingestion-job-secret
-  g3kubectl create secret generic data-ingestion-job-secret "--from-file=config.json=$credsFile"
-}
-
-if (! (g3kubectl describe secret data-ingestion-job-secret 2> /dev/null | grep config.js > /dev/null 2>&1)) \
-  && [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; 
+if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; 
 then
   cat - > "$credsFile" <<EOM
 {
@@ -52,7 +46,6 @@ then
 }
 EOM
   gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
-  refresh_secret
 fi
 
 # Prep inputs to job
@@ -87,7 +80,7 @@ if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
 fi
 
 add_genome_file_manifest_to_bucket() {
-  hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
+  hostname="$(gen3 api hostname)"
   creds_json=`cat $credsFile`
   bucket_name=$(jq -r .local_data_aws_creds.bucket_name <<< $creds_json)
   if [ -z "$bucket_name" ] || [ "$bucket_name" == "null" ]; then
@@ -109,7 +102,6 @@ add_genome_file_manifest_to_bucket() {
   jq ".local_data_aws_creds.aws_secret_access_key = \"$access_key\"" "$credsFile" > "tmpXX.json"
   mv tmpXX.json $credsFile
 
-  refresh_secret
   aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/"
   gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
 }

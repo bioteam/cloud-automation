@@ -25,7 +25,8 @@ module "utility_vm" {
   proxy                      = "${var.proxy}"
   authorized_keys            = "${var.authorized_keys}"
   organization_name          = "${var.organization_name}"
-  
+  branch                     = "${var.branch}"
+  user_policy                = "${var.user_policy}"
 
   # put other variables here ...
 }

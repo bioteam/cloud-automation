@@ -74,7 +74,7 @@ if [[ ! -d ./cdis-manifest ]]; then
 fi
 
 # setup ~/Gen3Secrets
-for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/dbfarm g3auto/manifestservice g3auto/pelicanservice; do
+for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/dbfarm g3auto/manifestservice g3auto/pelicanservice g3auto/dashboard; do
   if [[ -e "$(gen3_secrets_folder)/$name" ]]; then
     gen3_log_info "copying $(gen3_secrets_folder)/$name"
     cp -r "$(gen3_secrets_folder)/$name" /home/$namespace/Gen3Secrets/$name
@@ -108,19 +108,25 @@ cat kubeconfig.bak | yq -r --arg ns "$namespace" '.contexts[0].context.namespace
 
 cp "$(gen3_secrets_folder)/creds.json" "/home/$namespace/Gen3Secrets/creds.json"
 
+
 dbsuffix=$(echo $namespace | sed 's/-/_/g')
 credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
 credsMaster="/home/$namespace/Gen3Secrets/creds.json"
 
 # create new databases - don't break if already exists
-for name in indexd fence sheepdog; do
+for name in fence indexd sheepdog; do
   dbname="${name}_$dbsuffix"
   if ! newCreds="$(gen3 secrets rotate newdb $name $dbname)"; then
     gen3_log_err "Failed to setup new db $dbname"
   fi
   # update creds.json
-  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi)' < "$credsMaster" > "$credsTemp"; then
+  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi) | del(.ssjdispatcher) | del(.user)' < "$credsMaster" > "$credsTemp"; then
     cp "$credsTemp" "$credsMaster"
+  fi
+  if [[ "$name" == "sheepdog" ]]; then # update peregrine too
+    if jq -r '.peregrine.db_database=.sheepdog.db_database' < "$credsMaster" > "$credsTemp"; then
+      cp "$credsTemp" "$credsMaster"
+    fi
   fi
   if [[ "$name" == "fence" ]]; then # update fence-config.yaml too
     fenceYaml="/home/$namespace/Gen3Secrets/apis_configs/fence-config.yaml"
@@ -130,6 +136,8 @@ for name in indexd fence sheepdog; do
     dbdatabase="$(jq -r .db_database <<< "$newCreds")"
     dblogin="postgresql://${dbuser}:${dbpassword}@${dbhost}:5432/${dbdatabase}"
     sed -i -E "s%^DB:.*$%DB: $dblogin%" "$fenceYaml"
+    # try to avoid new namespace using same upload bucket
+    sed -i -E "s%DATA_UPLOAD_BUCKET%#DATA_UPLOAD_BUCKET%" "$fenceYaml"
   fi
 done
 
@@ -139,7 +147,7 @@ for name in .rendered_fence_db .rendered_gdcapi_db; do
 done
 
 # update creds.json
-oldHostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"
+oldHostname="$(gen3 api hostname)"
 newHostname="$(sed "s/^[a-zA-Z0-9]*/$namespace/" <<< "$oldHostname")"
 
 for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do
@@ -176,6 +184,7 @@ export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1
 
 export KUBECONFIG=~/Gen3Secrets/kubeconfig
 export GEN3_HOME=~/cloud-automation
+export vpc_name="$vpc_name"
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi

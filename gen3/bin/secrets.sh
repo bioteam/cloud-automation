@@ -2,6 +2,7 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
+gen3_load "gen3/lib/secrets/rotate-gcp"
 gen3_load "gen3/lib/secrets/rotate-postgres"
 
 # lib --------------------------------------
@@ -42,9 +43,8 @@ gen3_secrets_init_git() {
         git remote add secrets_backup "$backup/secrets.git"
       fi
 
-      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]]; then
+      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]] || grep '\.env' "$(gen3_secrets_folder)/.gitignore" > /dev/null 2>&1; then
         cat - > "$(gen3_secrets_folder)/.gitignore" <<EOM
-*.env
 *.bak
 *.old
 *~
@@ -117,7 +117,7 @@ gen3_secrets_sync() {
 
     local keys
     # exclude deprecated or specially handled secrets
-    keys="$(jq -r '((.|keys)-["gdcapi", "userapi", "ssjdispatcher"])|join("\n")' < "$credsFile")"
+    keys="$(jq -r '((.|keys)-["gdcapi", "userapi"])|join("\n")' < "$credsFile")"
     local serviceName
     local secretName
     local secretValueFile
@@ -130,11 +130,16 @@ gen3_secrets_sync() {
       g3kubectl delete secret "$secretName" > /dev/null 2>&1
     done
     sleep 1  # I think delete is async - give backend a second to finish
+    local secretFileName
     for serviceName in $keys; do
+      secretFileName="creds.json"
+      if [[ "$serviceName" == "ssjdispatcher" ]]; then # special case
+        secretFileName=credentials.json
+      fi
       secretName="${serviceName}-creds"
       secretValueFile="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXX")"
       jq -r ".[\"$serviceName\"]" > "$secretValueFile" < "$credsFile"
-      g3kubectl create secret generic "$secretName" "--from-file=creds.json=${secretValueFile}"
+      g3kubectl create secret generic "$secretName" "--from-file=${secretFileName}=${secretValueFile}"
       rm "$secretValueFile"
     done
   
@@ -287,6 +292,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   case "$command" in
     "commit")
       gen3_secrets_commit "$@"
+      ;;
+    "gcp")
+      gen3_secrets_gcp "$@"
       ;;
     "sync")
       gen3_secrets_sync "$@"

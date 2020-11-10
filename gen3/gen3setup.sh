@@ -10,6 +10,7 @@ if [[ ! -f "$GEN3_HOME/gen3/lib/utils.sh" ]]; then
   unset GEN3_HOME
   return 1
 fi
+
 export GEN3_HOME
 
 source "$GEN3_HOME/gen3/lib/utils.sh"
@@ -27,10 +28,18 @@ fi
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
 #
+# Try to automate KUBECONFIG setup
+#
+if ! g3kubectl versions 2> /dev/null && [[ -z "$KUBECONFIG" && -f "$(gen3_secrets_folder)/kubeconfig" ]]; then
+  export KUBECONFIG="$(gen3_secrets_folder)/kubeconfig"
+fi
+
+#
 # Flag values - cleared on each call to 'gen3'
 #
 GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
 GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
+
 
 #
 # Little helper to gen3_run to set gen3 workon environment variables
@@ -205,6 +214,7 @@ gen3_run() {
   fi
   return $resultCode
 }
+
 
 gen3() {
   if [[ ! -d "$GEN3_HOME/gen3/bin" ]]; then

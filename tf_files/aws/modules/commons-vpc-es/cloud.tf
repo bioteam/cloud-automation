@@ -9,6 +9,7 @@ module "elasticsearch_alarms" {
 }
 
 resource "aws_iam_service_linked_role" "es" {
+  count            = "${var.es_linked_role ? 1 : 0}"
   aws_service_name = "es.amazonaws.com"
 }
 
@@ -31,7 +32,7 @@ resource "aws_security_group" "private_es" {
     cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -64,7 +65,7 @@ CONFIG
 
 resource "aws_elasticsearch_domain" "gen3_metadata" {
   domain_name           = "${var.vpc_name}-gen3-metadata"
-  elasticsearch_version = "6.3"
+  elasticsearch_version = "${var.es_version}"
   encrypt_at_rest {
     # For small instance type like t2.medium, encryption is not available
     enabled = "${var.encryption}"
@@ -97,7 +98,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
     automated_snapshot_start_hour = 23
   }
 
-  tags {
+  tags = {
     Name         = "gen3_metadata"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"

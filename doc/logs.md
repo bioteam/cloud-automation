@@ -14,6 +14,7 @@ gen3 logs raw
 Get the logs for a kubernetes cron job (usersync by default).
 
 Accepts the following `key=value` arguments
+* `app=gen3job|ssjdispatcherjob|...` - default `gen3job`
 * `page=number|number-number|all` - default `0`
 * `vpc=$vpc_name|all` - default `${vpc_name:-all}` - see `gen3 logs vpc` below
 * `jname=name` - job name prefix - default `usersync`
@@ -26,6 +27,9 @@ Ex:
 ```
 $ gen3 logs job vpc=dcfprod jname=google
 $ gen3 logs job vpc=all jname=user start='2 hours ago'
+$ gen3 logs job vpc=bdcatprod jname=indexing app=ssjdispatcherjob start='3 days ago'
+$ gen3 logs job vpc=bdcatprod jname="" app=sowerjob fields=all start='3 days ago'
+$ gen3 logs job vpc=bdcatprod jname="pelican" app=sowerjob
 ```
 
 Note: `gen3 logs vpc` gives the available VPC codes
@@ -257,7 +261,15 @@ $ gen3 logs history rtimes "start=-7 days" "vpc=bhcprodv2"
 Retrieve the number of unique users for the given commons and date range.
 
 ```
-$ gen3 logs history rtimes "start=-7 days" "vpc=bhcprodv2"
+$ gen3 logs history users "start=-7 days" "vpc=bhcprodv2"
+```
+
+### `gen3 logs history byuser`
+
+Retrieve hit counts for the top 100 users.
+
+```
+$ gen3 logs history byuser "start=-4 days" "end=-3 days" "vpc=bhcprodv2"
 ```
 
 ### `gen3 logs snapshot`
