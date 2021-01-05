@@ -28,11 +28,11 @@ spec:
           - path: /api*
             backend:
               serviceName: forward-monarch
-              servicePort: 80
+              servicePort: use-annotation
           - path: /*
             backend:
               serviceName: forward-enrollment
-              servicePort: 80
+              servicePort: use-annotation
           - path: /*
             backend:
               serviceName: "revproxy-service-alb"
