@@ -6,7 +6,7 @@ metadata:
     kubernetes.io/ingress.class: alb
     #alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:098381893833:certificate/4b21d947-d829-43fa-944e-ba8c953ba2c3
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:082619190404:certificate/4e6e4243-d596-4744-a8b2-736248ee46e9
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
     alb.ingress.kubernetes.io/backend-protocol: HTTPS
     alb.ingress.kubernetes.io/healthcheck-protocol: HTTPS
