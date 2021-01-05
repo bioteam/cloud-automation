@@ -6,7 +6,16 @@ metadata:
     kubernetes.io/ingress.class: alb
     #alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:098381893833:certificate/4b21d947-d829-43fa-944e-ba8c953ba2c3
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:082619190404:certificate/9fe8d655-b7c6-4b75-b6bb-d7ad5d5550af,arn:aws:acm:us-east-1:082619190404:certificate/4e6e4243-d596-4744-a8b2-736248ee46e9
+    alb.ingress.kubernetes.io/subnets: subnet-0c46b33a67d3112ce,subnet-0c9e7aaec379078fb,subnet-0efc6db34c0c329c7,subnet-0db97ac4d25b946e0
+    alb.ingress.kubernetes.io/actions.forward-monarch: >
+      {"type":"forward","targetGroupARN": "arn:aws:elasticloadbalancing:us-east-1:082619190404:targetgroup/monarchTargetGroup/da52271edd9aa0af"}
+    alb.ingress.kubernetes.io/conditions.forward-monarch: >
+      [{"field":"host-header","hostHeaderConfig":{"values":["datacommons.web.bms.com"]}},{"field":"path-pattern","pathPatternConfig":{"values":["/docs*"]}}]
+    alb.ingress.kubernetes.io/actions.forward-enrollment: >
+      {"type":"forward","targetGroupARN": "arn:aws:elasticloadbalancing:us-east-1:082619190404:targetgroup/enrollmentTargetGroup/928e56a7bcaf995a"}
+    alb.ingress.kubernetes.io/conditions.forward-enrollment: >
+      [{"field":"host-header","hostHeaderConfig":{"values":["datacommons.web.bms.com"]}}]    
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
     alb.ingress.kubernetes.io/backend-protocol: HTTPS
     alb.ingress.kubernetes.io/healthcheck-protocol: HTTPS
@@ -16,6 +25,14 @@ spec:
   rules:
     - http:
         paths:
+          - path: /api*
+            backend:
+              serviceName: forward-monarch
+              servicePort: 80
+          - path: /*
+            backend:
+              serviceName: forward-enrollment
+              servicePort: 80
           - path: /*
             backend:
               serviceName: "revproxy-service-alb"
